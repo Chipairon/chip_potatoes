@@ -7,8 +7,9 @@ class MoviesController < ApplicationController
   end
 
   def index
+    @order_by = params[:order]
     case params[:order]
-    when 'tittle'
+    when 'title'
       @movies = Movie.all(:order => 'title')
     when 'release_date'
       @movies = Movie.all(:order => 'release_date')
