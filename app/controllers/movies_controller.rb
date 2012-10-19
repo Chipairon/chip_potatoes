@@ -1,5 +1,5 @@
 class MoviesController < ApplicationController
-
+  helper_method :cookies
   def show
     id = params[:id] # retrieve movie ID from URI route
     @movie = Movie.find(id) # look up movie by unique ID
@@ -7,6 +7,17 @@ class MoviesController < ApplicationController
   end
 
   def index
+    @all_ratings = Movie.ratings
+    if cookies[:selected_ratings].nil?
+      cookies[:selected_ratings] = @all_ratings
+    elsif cookies[:selected_ratings].include? '&'
+      cookies[:selected_ratings] = cookies[:selected_ratings].split('&')
+    end
+    if params[:ratings].nil? == false
+      cookies[:selected_ratings] = params[:ratings].keys
+    end
+    debugger
+    @selected_ratings = cookies[:selected_ratings]
     @order_by = params[:order]
     case params[:order]
     when 'title'
