@@ -9,3 +9,6 @@ tmp/
 # bundler state
 /.bundle
 /vendor/bundle/
+
+# heroku url file used for grading pusposes 
+heroku_url.txt

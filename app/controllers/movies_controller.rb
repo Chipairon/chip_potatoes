@@ -12,14 +12,17 @@ class MoviesController < ApplicationController
       cookies[:selected_ratings] = @all_ratings
     elsif cookies[:selected_ratings].include? '&'
       cookies[:selected_ratings] = cookies[:selected_ratings].split('&')
+    elsif cookies[:selected_ratings].class == String #if just one rating, is a string, but the view expects array
+      cookies[:selected_ratings] = [cookies[:selected_ratings]]
     end
     if params[:ratings].nil? == false
       cookies[:selected_ratings] = params[:ratings].keys
     end
-    debugger
     @selected_ratings = cookies[:selected_ratings]
-    @order_by = params[:order]
-    case params[:order]
+
+    cookies[:order] = params[:order] unless params[:order].nil?
+    @order_by = cookies[:order]
+    case @order_by
     when 'title'
       @movies = Movie.all(:order => 'title')
     when 'release_date'
