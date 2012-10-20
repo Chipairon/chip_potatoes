@@ -10,25 +10,27 @@ class MoviesController < ApplicationController
     @all_ratings = Movie.ratings
     if cookies[:selected_ratings].nil?
       cookies[:selected_ratings] = @all_ratings
-    elsif cookies[:selected_ratings].include? '&'
+    elsif cookies[:selected_ratings].include? '&' #if the cookie is serialized, the array [1,2] goes to "1&2"
       cookies[:selected_ratings] = cookies[:selected_ratings].split('&')
     elsif cookies[:selected_ratings].class == String #if just one rating, is a string, but the view expects array
       cookies[:selected_ratings] = [cookies[:selected_ratings]]
     end
-    if params[:ratings].nil? == false
+    unless params[:ratings].nil?
       cookies[:selected_ratings] = params[:ratings].keys
     end
     @selected_ratings = cookies[:selected_ratings]
 
     cookies[:order] = params[:order] unless params[:order].nil?
     @order_by = cookies[:order]
-    case @order_by
-    when 'title'
-      @movies = Movie.all(:order => 'title')
-    when 'release_date'
-      @movies = Movie.all(:order => 'release_date')
+
+    #constructing the SQL, keeping it separated from the above code is not necessary, but more readable
+    if @order_by.nil?
+      @movies = Movie
     else
-      @movies = Movie.all
+      @movies = Movie.order(@order_by)
+    end
+    unless @selected_ratings.nil?
+      @movies = @movies.where(rating: @selected_ratings)
     end
   end
 
