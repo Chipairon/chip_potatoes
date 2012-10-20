@@ -32,6 +32,29 @@ class MoviesController < ApplicationController
     unless @selected_ratings.nil?
       @movies = @movies.where(rating: @selected_ratings)
     end
+
+    # Keeping the app RESTful:
+    # When clicking on sort column, the params for the ratings filter are not carried in the url
+    # and viceversa. We want to carry in the url all parameters affecting the page,
+    # so if clicking sort -> look for ratings filter and add them to url via redirect
+    #    if clicking refresh filter -> look for sorting and add it to url via redirect.
+    params_to_redirect = {}
+    if params[:order]
+      params_to_redirect[:order] = params[:order]
+    elsif params[:order].nil? and @order_by.nil? == false
+      params_to_redirect[:order] = @order_by
+    end
+    if params[:ratings]
+      params_to_redirect[:ratings] = params[:ratings]
+    elsif params[:ratings].nil? and @selected_ratings.nil? == false
+      params_to_redirect[:ratings] = {}
+      @selected_ratings.each { |k| params_to_redirect[:ratings][k] = 1 }
+    end
+    if params_to_redirect.any? and 
+      (params_to_redirect[:order] != params[:order] or 
+       params_to_redirect[:ratings] != params[:ratings])
+      redirect_to movies_path(params_to_redirect)
+    end
   end
 
   def new
