@@ -1,0 +1,19 @@
+%h2 Movies with same director as #{@movie.title}
+%h3 Director: #{@movie.director}
+
+%table#movies
+  %thead
+    %tr
+      %th{:class => @title_header} 'Movie Title'
+      %th Rating
+      %th{:class => @date_header} 'Release Date'
+      %th More Info
+  %tbody
+    - @movies.each do |movie|
+      %tr
+        %td= movie.title 
+        %td= movie.rating
+        %td= movie.release_date
+        %td= link_to "More about #{movie.title}", movie_path(movie)
+
+= link_to 'Back to movie list', movies_path

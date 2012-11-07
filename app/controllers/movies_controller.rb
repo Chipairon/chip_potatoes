@@ -1,5 +1,5 @@
 class MoviesController < ApplicationController
-  helper_method :cookies
+
   def show
     id = params[:id] # retrieve movie ID from URI route
     @movie = Movie.find(id) # look up movie by unique ID
@@ -7,53 +7,37 @@ class MoviesController < ApplicationController
   end
 
   def index
-    @all_ratings = Movie.ratings
-    if cookies[:selected_ratings].nil?
-      cookies[:selected_ratings] = @all_ratings
-    elsif cookies[:selected_ratings].include? '&' #if the cookie is serialized, the array [1,2] goes to "1&2"
-      cookies[:selected_ratings] = cookies[:selected_ratings].split('&')
-    elsif cookies[:selected_ratings].class == String #if just one rating, is a string, but the view expects array
-      cookies[:selected_ratings] = [cookies[:selected_ratings]]
+    sort = params[:sort] || session[:sort]
+    case sort
+    when 'title'
+      ordering,@title_header = {:order => :title}, 'hilite'
+    when 'release_date'
+      ordering,@date_header = {:order => :release_date}, 'hilite'
     end
-    unless params[:ratings].nil?
-      cookies[:selected_ratings] = params[:ratings].keys
-    end
-    @selected_ratings = cookies[:selected_ratings]
+    @all_ratings = Movie.all_ratings
+    @selected_ratings = params[:ratings] || session[:ratings] || {}
 
-    cookies[:order] = params[:order] unless params[:order].nil?
-    @order_by = cookies[:order]
-
-    #constructing the SQL, keeping it separated from the above code is not necessary, but more readable
-    if @order_by.nil?
-      @movies = Movie
-    else
-      @movies = Movie.order(@order_by)
-    end
-    unless @selected_ratings.nil?
-      @movies = @movies.where(rating: @selected_ratings)
+    if @selected_ratings == {}
+      @selected_ratings = Hash[@all_ratings.map {|rating| [rating, rating]}]
     end
 
-    # Keeping the app RESTful:
-    # When clicking on sort column, the params for the ratings filter are not carried in the url
-    # and viceversa. We want to carry in the url all parameters affecting the page,
-    # so if clicking sort -> look for ratings filter and add them to url via redirect
-    #    if clicking refresh filter -> look for sorting and add it to url via redirect.
-    params_to_redirect = {}
-    if params[:order]
-      params_to_redirect[:order] = params[:order]
-    elsif params[:order].nil? and @order_by.nil? == false
-      params_to_redirect[:order] = @order_by
+    if params[:sort] != session[:sort]
+      session[:sort] = sort
+      flash.keep
+      redirect_to :sort => sort, :ratings => @selected_ratings,
+        :director => params[:director] and return
     end
-    if params[:ratings]
-      params_to_redirect[:ratings] = params[:ratings]
-    elsif params[:ratings].nil? and @selected_ratings.nil? == false
-      params_to_redirect[:ratings] = {}
-      @selected_ratings.each { |k| params_to_redirect[:ratings][k] = 1 }
+
+    if params[:ratings] != session[:ratings] and @selected_ratings != {}
+      session[:sort] = sort
+      session[:ratings] = @selected_ratings
+      flash.keep
+      redirect_to :sort => sort, :ratings => @selected_ratings,
+        :director => params[:director] and return
     end
-    if params_to_redirect.any? and 
-      (params_to_redirect[:order] != params[:order] or 
-       params_to_redirect[:ratings] != params[:ratings])
-      redirect_to movies_path(params_to_redirect)
+    @movies = Movie.where(rating: @selected_ratings.keys)
+    unless ordering.nil?
+      @movies = @movies.order(ordering[:order])
     end
   end
 
@@ -83,6 +67,16 @@ class MoviesController < ApplicationController
     @movie.destroy
     flash[:notice] = "Movie '#{@movie.title}' deleted."
     redirect_to movies_path
+  end
+
+  def same_director
+    @movie = Movie.find params[:id]
+    @movies = @movie.find_with_same_director
+    if @movies.nil? 
+      flash[:notice] = "'#{@movie.title}' has no director info"
+      redirect_to movies_path and return
+    end
+    render "movies/same_director.html.haml"
   end
 
 end
