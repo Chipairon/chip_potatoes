@@ -3,100 +3,61 @@
 # newer version of cucumber-rails. Consider adding your own code to a new file 
 # instead of editing this one. Cucumber will automatically load all features/**/*.rb
 # files.
-
-require 'rubygems'
-require 'spork'
 require 'simplecov' 
-SimpleCov.start 'rails'
-
-Spork.prefork do
-  require 'cucumber/rails'
-  require 'cucumber/formatter/unicode' # Comment out this line if you don't want Cucumber Unicode support
-  require 'cucumber/formatter/pretty'
-  require 'cucumber/rails/rspec'
-  require 'haml'
-  require 'action_view'
-  require 'active_support/json'
-  require 'erubis'
-  require 'database_cleaner'
-  require 'database_cleaner/active_record/base'
-  require 'database_cleaner/active_record/transaction'
-  require 'active_record'
-  require 'gherkin_lexer_en'
-  require 'gherkin/c_lexer'
-  require 'active_support'
-  require 'active_support/core_ext'
-  require 'active_support/descendants_tracker'
-
-  # profiling as explained in 
-  # http://www.opinionatedprogrammer.com/2011/02/profiling-spork-for-faster-start-up-time/
-  # If you see that modules that are not yours take long, add a require here for them,
-  # so they are preloaded once and not every test run.
-#   module Kernel
-#   def require_with_trace(*args)
-#   start = Time.now.to_f
-#   @indent ||= 0
-#   @indent += 2
-#   require_without_trace(*args)
-#   @indent -= 2
-#   Kernel::puts "#{' '*@indent}#{((Time.now.to_f - start)*1000).to_i} #{args[0]}"
-#   end
-#   alias_method_chain :require, :trace
-#   end
-
-
-  # Capybara defaults to XPath selectors rather than Webrat's default of CSS3. In
-  # order to ease the transition to Capybara we set the default here. If you'd
-  # prefer to use XPath just remove this line and adjust any selectors in your
-  # steps to use the XPath syntax.
-  Capybara.default_selector = :css
-
+SimpleCov.start 'rails' do
+  command_name 'cukes'
 end
- 
-Spork.each_run do
-  # By default, any exception happening in your Rails application will bubble up
-  # to Cucumber so that your scenario will fail. This is a different from how 
-  # your application behaves in the production environment, where an error page will 
-  # be rendered instead.
-  #
-  # Sometimes we want to override this default behaviour and allow Rails to rescue
-  # exceptions and display an error page (just like when the app is running in production).
-  # Typical scenarios where you want to do this is when you test your error pages.
-  # There are two ways to allow Rails to rescue exceptions:
-  #
-  # 1) Tag your scenario (or feature) with @allow-rescue
-  #
-  # 2) Set the value below to true. Beware that doing this globally is not
-  # recommended as it will mask a lot of errors for you!
-  #
-  ActionController::Base.allow_rescue = false
-  
-  # Remove/comment out the lines below if your app doesn't have a database.
-  # For some databases (like MongoDB and CouchDB) you may need to use :truncation instead.
-  begin
-    DatabaseCleaner.strategy = :transaction
-  rescue NameError
-    raise "You need to add database_cleaner to your Gemfile (in the :test group) if you wish to use it."
-  end
-  
-  # You may also want to configure DatabaseCleaner to use different strategies for certain features and scenarios.
-  # See the DatabaseCleaner documentation for details. Example:
-  #
-  #   Before('@no-txn,@selenium,@culerity,@celerity,@javascript') do
-  #     # { :except => [:widgets] } may not do what you expect here
-  #     # as tCucumber::Rails::Database.javascript_strategy overrides
-  #     # this setting.
-  #     DatabaseCleaner.strategy = :truncation
-  #   end
-  #
-  #   Before('~@no-txn', '~@selenium', '~@culerity', '~@celerity', '~@javascript') do
-  #     DatabaseCleaner.strategy = :transaction
-  #   end
-  #
-  
-  # Possible values are :truncation and :transaction
-  # The :transaction strategy is faster, but might give you threading problems.
-  # See https://github.com/cucumber/cucumber-rails/blob/master/features/choose_javascript_database_strategy.feature
-  Cucumber::Rails::Database.javascript_strategy = :truncation
 
+require 'cucumber/rails'
+
+# Capybara defaults to XPath selectors rather than Webrat's default of CSS3. In
+# order to ease the transition to Capybara we set the default here. If you'd
+# prefer to use XPath just remove this line and adjust any selectors in your
+# steps to use the XPath syntax.
+Capybara.default_selector = :css
+
+# By default, any exception happening in your Rails application will bubble up
+# to Cucumber so that your scenario will fail. This is a different from how 
+# your application behaves in the production environment, where an error page will 
+# be rendered instead.
+#
+# Sometimes we want to override this default behaviour and allow Rails to rescue
+# exceptions and display an error page (just like when the app is running in production).
+# Typical scenarios where you want to do this is when you test your error pages.
+# There are two ways to allow Rails to rescue exceptions:
+#
+# 1) Tag your scenario (or feature) with @allow-rescue
+#
+# 2) Set the value below to true. Beware that doing this globally is not
+# recommended as it will mask a lot of errors for you!
+#
+ActionController::Base.allow_rescue = false
+
+# Remove/comment out the lines below if your app doesn't have a database.
+# For some databases (like MongoDB and CouchDB) you may need to use :truncation instead.
+begin
+  DatabaseCleaner.strategy = :transaction
+rescue NameError
+  raise "You need to add database_cleaner to your Gemfile (in the :test group) if you wish to use it."
 end
+
+# You may also want to configure DatabaseCleaner to use different strategies for certain features and scenarios.
+# See the DatabaseCleaner documentation for details. Example:
+#
+#   Before('@no-txn,@selenium,@culerity,@celerity,@javascript') do
+#     # { :except => [:widgets] } may not do what you expect here
+#     # as tCucumber::Rails::Database.javascript_strategy overrides
+#     # this setting.
+#     DatabaseCleaner.strategy = :truncation
+#   end
+#
+#   Before('~@no-txn', '~@selenium', '~@culerity', '~@celerity', '~@javascript') do
+#     DatabaseCleaner.strategy = :transaction
+#   end
+#
+
+# Possible values are :truncation and :transaction
+# The :transaction strategy is faster, but might give you threading problems.
+# See https://github.com/cucumber/cucumber-rails/blob/master/features/choose_javascript_database_strategy.feature
+Cucumber::Rails::Database.javascript_strategy = :truncation
+
